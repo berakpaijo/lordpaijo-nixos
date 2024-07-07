@@ -5,10 +5,14 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable"; # follow unstable channel
     home-manager.url = "github:nix-community/home-manager/master"; # Home Manager channel
-    stylix.url = "github:danth/stylix";
+    stylix = {
+      url = "github:danth/stylix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nix-colors.url = "github:misterio77/nix-colors";
   };	
 
-  outputs = { self, nixpkgs, home-manager, stylix, ... } @ inputs: let
+  outputs = { self, nixpkgs, home-manager, stylix, nix-colors, ... } @ inputs: let
     inherit (self) outputs; # to export the output variable
     system = "x86_64-linux"; # your system
     pkgs = nixpkgs.legacyPackages.${system};
@@ -23,17 +27,18 @@
         };
         modules = [
           ./configuration.nix
-          inputs.stylix.nixosModules.stylix
-        ];
-      };
-      # Home manager
-      home-manager.nixosModules.home-manager =
-      {
-        nix.registry.nixos.flake = inputs.self;
-        home-manager.useGlobalPkgs = true;
-        home-manager.useUserPackages = true;
-        imports = [
-          ./home/lordpaijo/.config/home-manager/home.nix # your home-manager config
+          stylix.nixosModules.stylix
+          # Home manager
+          home-manager.nixosModules.home-manager
+          {
+            nix.registry.nixos.flake = inputs.self;
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.extraSpecialArgs = { inherit nix-colors; };
+            imports = [
+              ./home-manager/home.nix # your home-manager config
+            ];
+          }
         ];
       };
     };

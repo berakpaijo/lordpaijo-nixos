@@ -5,18 +5,8 @@
 { inputs, config, pkgs, ... }:
 {
   imports = [ 
-    #<home-manager/nixos>
     ./hardware-configuration.nix
-    inputs.home-manager.nixosModules.home-manager
   ];
-
-  #home-manager
-  home-manager = {
-    extraSpecialArgs = {inherit inputs;};
-    users = {
-      lordpaijo = import ./home-manager/home.nix;
-    };
-  };
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
