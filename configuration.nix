@@ -1,22 +1,8 @@
-# Edit this configuration file to define what should be installed on
-# your system.  Help is available in the configuration.nix(5) man page
-# and in the NixOS manual (accessible by running ‘nixos-help’).
-
-{ inputs, config, pkgs, ... }:
+{ inputs, config, pkgs, lib, ... }:
 {
   imports = [ 
-    #<home-manager/nixos>
     ./hardware-configuration.nix
-    inputs.home-manager.nixosModules.home-manager
   ];
-
-  #home-manager
-  home-manager = {
-    extraSpecialArgs = {inherit inputs;};
-    users = {
-      lordpaijo = import ./home-manager/home.nix;
-    };
-  };
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
@@ -38,8 +24,30 @@
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
 
-  # Enable the X11 windowing system.
-  services.xserver.enable = true;
+  # Enable the i3wm and x11
+  environment.pathsToLink = [ "/libexec" ]; # links /libexec from derivations to /run/current-system/sw 
+  
+  services.xserver = {
+    enable = true;
+
+    desktopManager = {
+      xterm.enable = false;
+    };
+   
+    displayManager = {
+        defaultSession = "none+i3";
+    };
+
+    windowManager.i3 = {
+      enable = true;
+      extraPackages = with pkgs; [
+        dmenu #application launcher most people use
+        i3status # gives you the default i3 status bar
+        i3lock #default i3 screen locker
+        i3blocks #if you are planning on using i3blocks over i3status
+     ];
+    };
+  };
 
   # Enable the GNOME Desktop Environment.
   services.xserver.displayManager.gdm.enable = true;
@@ -81,11 +89,12 @@
     packages = with pkgs; [
     #  thunderbird
     ];
+    shell = pkgs.zsh; 
   };
 
   # Install softwares!
   programs.firefox.enable = true;
-  #programs.zsh = { enable=true;enableCompletion=true;syntaxHighlighting.enable=true;shellAliases = { ll="ls -l";update="sudo nixos-rebuild switch"; };history = { size=10000; path="${config.xdg.dataHome}/zsh/history"; }; };
+  programs.zsh.enable = true;
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
   
@@ -95,9 +104,6 @@
   #stylix
   stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/onedark.yaml"; 
   
-  #home-manager
-
-  
   #git
   programs.git = {
     enable = true;
@@ -106,14 +112,32 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-    vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    vim
+    neovim
     lf
     wget
     kitty
     python3
-    zulu17
+    openjdk
     home-manager
+    gnomeExtensions.blur-my-shell
+    cloudflare-warp
+    pkgs.gnome3.gnome-tweaks
+    pkgs.gnomeExtensions.arcmenu
+    pkgs.gnome-menus
+    nodejs_22
+    gtop
+    zsh
+    nitrogen
+    stow
+    polybar
+    feh
+    rofi-wayland-unwrapped
+    zip
   ];
+  
+  #flatpak
+  services.flatpak.enable = true;
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
